@@ -1,0 +1,2 @@
+# CurrencyProjectOAS
+OpenApiSpecification for CurrencyProject
