@@ -1,0 +1,297 @@
+openapi: 3.0.3
+info: 
+  title: Currency Project
+  description: |
+    ## About API
+    **CurrencyAPI** provides you many currencies, cryptocurrencies and 
+    materials. Furthermore you can get `historical data` for each of them.
+    # Categrories
+    - **Currencies**
+    - **Materials**
+    - **Cryptos**
+  
+  x-custom-info: 
+    comments: Some comments
+    authors: 
+      - name: John Doe
+        email: john@doe.com
+    
+  contact:
+    name: API support
+    email: wojnyklonow420@gmail.com
+  version: 1.0.0
+tags: 
+  - name: Categories
+    description: categories operations
+  - name: Currency
+    description: operations for currencies
+  - name: Time 
+    description: operations for check allowed times for each assetType
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - oAuth2AuthCode:
+    - read
+    - write 
+    - admin
+paths: 
+  /currency:
+    get:
+   
+      operationId: getCurrencies
+      tags:
+        - Currency
+      summary: get all currencies
+      parameters:
+        - $ref: "#/components/parameters/pageQueryParam"
+        - $ref: "#/components/parameters/sizeQueryParam"
+      responses:
+        '200':
+          description: successful response
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                   $ref: "#/components/schemas/currency"
+          links: 
+           
+            getCurrencies:
+              description: return list of all currencies 
+        '500': 
+           $ref: "#/components/responses/InternalServerError"
+         
+  /categories:
+    get: 
+      operationId: getCategories
+      tags: 
+        - Categories
+      summary: get all categories
+      parameters:
+        - $ref: "#/components/parameters/categoryIdQueryParam"
+      security: []
+      responses:
+        '200':
+          description: successful reponse
+          content:
+            application/json:
+              schema:
+                title: all categories
+                description: get all categories
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+                  
+        '500': 
+           $ref: "#/components/responses/InternalServerError"
+  /time/{assetType}:
+    get: 
+      operationId: getTime
+      tags:
+        - Time
+      summary: get allowed time for asset
+      description: |
+        get allowed time option for each asset type
+      parameters:
+        - name: assetType
+          in: path 
+          schema:
+            type: string
+          required: true
+          examples:
+            crypto:
+              value: crypto
+            currency:
+              value: currency
+            material:
+              value: material
+      responses:
+        '200':
+          description: successfull allowed time option for asset type
+          content: 
+            application/json:
+              schema: 
+                title: all allowed asset Type
+                description: get all asset Types
+                type: array 
+                items: 
+                  type: object 
+                  properties:
+                    assetType:
+                      type: string
+                    name: 
+                      type: string
+                    value: 
+                      type: string
+        '500': 
+           $ref: "#/components/responses/InternalServerError"            
+  /order:
+    get: 
+      operationId: getOrder
+      tags: 
+        - Categories
+      summary: get order
+      responses:
+        '200':
+          description: successful reponse
+          content:
+            application/json:
+              schema:
+                title: all categories
+                description: get all categories
+                type: array
+                items:
+                  $ref: "#/components/schemas/order"
+                  
+        '500': 
+           $ref: "#/components/responses/InternalServerError"                    
+                      
+components:
+  parameters: 
+    categoryIdQueryParam:
+      name: category
+      in: query
+      schema: 
+        type: integer
+      required: false
+      examples:
+         mobiles:
+           value: 101
+         laptops:
+           value: 102
+         televistions:
+           value: 103
+    pageQueryParam:
+      name: page
+      in: query
+      required: false
+      schema: 
+        type: integer
+      example: 1  
+    sizeQueryParam:  
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        maximum: 150
+      example: 50
+  schemas: 
+    currency:
+        
+        type: object
+        properties:
+            effectiveDate:
+              type: string
+            code: 
+              type: string
+            currency:
+              type: string
+            country:
+              type: string
+            group:
+              type: string
+            midPrice:
+              type: number
+            change: 
+              type: number
+              format: float
+            percentChange:
+              type: number
+    Category:
+        type: object
+        properties:
+          categoryId:
+            type: integer
+            readOnly: true
+          name:
+            type: string
+    order:
+        type: object
+        properties:
+            relaseDate:
+              type: string
+              format: date
+              readOnly: true
+            name: 
+              type: string
+            price:
+              type: number
+            address:
+              $ref: "#/components/schemas/address"
+    address:
+        type: object 
+        properties:
+          city: 
+            type: string
+          street:
+            type: string
+          house:
+            type: string
+    Product:
+      type: object
+      properties:
+        name: 
+          type: string
+        price: 
+          type: number
+        category:
+          type: string
+    Mobile:
+      allOf: 
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          properties:
+            networkType:
+              type: string
+              enum:
+                - 4G
+                - 5G
+          required: [networkType]  
+    Laptop:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          properties:
+            ram:
+              type: string
+              enum:
+                - 8 GB
+                - 16 GB
+                - 32 GB
+  responses:
+    InternalServerError:
+      description: |
+        Error occur while proccessing the request 
+        please contact wojnyklonow420@gmail.com
+  links:
+    GetOrderByOrderId:
+      description: >
+        The orderId value returned in the response can be used 
+          as input parameter in 'GET /orders'
+      operationId: getProductDetails
+      parameters: 
+        orderId: '$response.body#/orderId'
+  securitySchemes:    
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    oAuth2AuthCode:
+      type: oauth2
+      flows:
+        authorizationCode: 
+          authorizationUrl: https://example.com/oauth
+          tokenUrl: https://example.com/token
+          scopes:
+            read: read only access
+            write: write access
+            admin: admin access
